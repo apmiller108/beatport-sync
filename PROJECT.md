@@ -509,7 +509,7 @@ beatport-sync/
 
   - \[X\] CLI setup with commander.js with init, stats and sync commands
     stubbed
-  - \[ \] Init command: Config file generation and loading
+  - \[X\] Init command: Config file generation and loading
   - \[ \] Database connection and validation
   - \[ \] Basic API client with authentication
 
