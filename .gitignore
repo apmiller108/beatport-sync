@@ -1,0 +1,9 @@
+# .gitignore
+node_modules/
+*.log
+.env
+.beatport-sync.config.yml
+*.sqlite
+*.sqlite-*.bak
+coverage/
+dist/

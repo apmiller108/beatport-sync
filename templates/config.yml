@@ -1,0 +1,25 @@
+# Beatport Sync Configuration
+# Copy this file to ~/.beatport-sync.config.yml and fill in your credentials
+
+beatport:
+  # Required: Get these from the manual auth process
+  # See README.md for instructions
+  client_id: "your_client_id_here"
+  access_token: "your_access_token_here"
+  refresh_token: "your_refresh_token_here"
+
+  # API settings
+  base_url: "https://api.beatport.com/v4"
+  max_retries: 3
+
+database:
+  path: "./mixxx/mixxxdb.sqlite"
+  backup_before_update: true
+
+logging:
+  level: "info"  # debug, info, warn, error
+  show_progress: true
+
+options:
+  auto_accept: false
+  overwrite_existing_genres: true
