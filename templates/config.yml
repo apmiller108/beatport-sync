@@ -13,7 +13,7 @@ beatport:
   max_retries: 3
 
 database:
-  path: "./mixxx/mixxxdb.sqlite"
+  path: "default"
   backup_before_update: true
 
 logging:
