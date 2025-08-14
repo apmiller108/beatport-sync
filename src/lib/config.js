@@ -3,7 +3,7 @@ import os from 'os'
 import fs from 'fs'
 import yaml from 'js-yaml'
 
-const homeDir = os.homedir();
+const homeDir = os.homedir()
 export const configFileName = '.beatport-sync.config.yml'
 
 export const configFilePath = () => {
@@ -22,5 +22,5 @@ export const config = () => {
 export default {
   configFileName,
   configFilePath,
-  config
+  config,
 }
