@@ -369,7 +369,14 @@ will have an empty results array
 
 ### Database
 
-file: mixxxdb.sqlite
+The location of the mixxxdb.sqlite database will depend on the OS:
+
+| Platform    | Default Path                                                                                 |
+|-------------|----------------------------------------------------------------------------------------------|
+| **Windows** | `C:\Users\<Username>\AppData\Local\Mixxx\mixxxdb.sqlite`                                     |
+| **macOS**   | `~/Library/Containers/org.mixxx.mixxx/Data/Library/Application Support/Mixxx/mixxxdb.sqlite` |
+| **Linux**   | `~/.mixxx/mixxxdb.sqlite`                                                                    |
+
 
 ### Tables
 
