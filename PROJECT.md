@@ -514,26 +514,27 @@ beatport-sync/
 
 ## Phase 1: Core Functionality
 
-  - \[X\] CLI setup with commander.js with init, stats and sync commands
+  - [x] CLI setup with commander.js with init, stats and sync commands
     stubbed
-  - \[X\] Init command: Config file generation and loading
-  - \[ \] Database connection and validation
-  - \[ \] Basic API client with authentication
+  - [x] Init command: Config file generation and loading
+  - [x] Database connection
+  - [ ] Database validation
+  - [ ] Basic API client with authentication
 
 ## Phase 2: Main Features
 
-  - \[ \] Stats command (good for testing database queries)
-  - \[ \] Sync command
-      - \[ \] Beatport API integration with retry logic
-      - \[ \] Crate filtering logic
-      - \[ \] User prompts and interaction
+  - [ ] Stats command (good for testing database queries)
+  - [ ] Sync command
+      - [ ] Beatport API integration with retry logic
+      - [ ] Crate filtering logic
+      - [ ] User prompts and interaction
 
 ## Phase 3: Polish
 
-  - \[ \] Progress tracking and better UX
-  - \[ \] Error handling refinement
-  - \[ \] Rate limiting optimization
-  - \[ \] Unit tests
+  - [ ] Progress tracking and better UX
+  - [ ] Error handling refinement
+  - [ ] Rate limiting optimization
+  - [ ] Unit tests
 
 ## Potential Edge Cases to Consider
 
