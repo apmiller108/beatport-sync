@@ -1,11 +1,9 @@
 import { Command } from 'commander';
+import { configFilePath } from '../lib/config.js'
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
-const homeDir = os.homedir();
-const configFileName = '.beatport-sync.config.yml';
-const configFilePath = path.join(homeDir, configFileName);
 const templatePath = path.join(process.cwd(), 'templates', 'config.yml');
 
 const printInstructions = () => {
@@ -18,7 +16,7 @@ const printInstructions = () => {
   console.log('4. Find the request to https://api.beatport.com/v4/auth/o/token/');
   console.log('5. In the response, you will find your access_token and refresh_token');
   console.log('6. In the request payload, you will find your client_id');
-  console.log(`7. Open the config file at ${configFilePath} and add these values.`);
+  console.log(`7. Open the config file at ${configFilePath()} and add these values.`);
   console.log('--------------------------------------------------------');
 }
 
@@ -27,13 +25,13 @@ export const initCommand = new Command('init')
   .action(async () => {
     console.log('🚀 Initializing beatport-sync configuration...');
 
-    if (fs.existsSync(configFilePath)) {
-      console.log(`✅ Config file already exists at ${configFilePath}`);
+    if (fs.existsSync(configFilePath())) {
+      console.log(`✅ Config file already exists at ${configFilePath()}`);
     } else {
       try {
         const templateContent = fs.readFileSync(templatePath, 'utf8');
-        fs.writeFileSync(configFilePath, templateContent);
-        console.log(`✅ Config file created at ${configFilePath}`);
+        fs.writeFileSync(configFilePath(), templateContent);
+        console.log(`✅ Config file created at ${configFilePath()}`);
       } catch (error) {
         console.error('❌ Error creating config file:', error);
         return;

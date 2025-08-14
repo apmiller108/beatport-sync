@@ -12,7 +12,8 @@
     "dev": "nodemon src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "link": "npm link",
-    "unlink": "npm unlink"
+    "unlink": "npm unlink",
+    "format": "prettier --write 'src/**/*.{js,mjs}'"
   },
   "keywords": [
     "beatport",
@@ -29,9 +30,11 @@
   },
   "dependencies": {
     "better-sqlite3": "^12.2.0",
-    "commander": "^14.0.0"
+    "commander": "^14.0.0",
+    "js-yaml": "^4.1.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "prettier": "^3.6.2"
   }
 }
