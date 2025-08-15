@@ -32,10 +32,25 @@ export const printConfig = () => {
   }
 }
 
+export const saveConfig = async (newConfig) => {
+  try {
+    const yamlStr = yaml.dump(newConfig)
+    fs.writeFileSync(configFilePath(), yamlStr, 'utf-8')
+    if (config().options.verbose) {
+      console.log(`✅ Configuration saved to ${configFilePath()}`)
+    }
+    return config()
+  } catch (error) {
+    console.error('❌ Error saving configuration:', error)
+    throw error
+  }
+}
+
 export default {
   configFileName,
   configFilePath,
   configFileExists,
   config,
-  printConfig
+  printConfig,
+  saveConfig
 }

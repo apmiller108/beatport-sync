@@ -45,6 +45,7 @@ There is no default command. An explicit command is required.
 # Technology
 
 Node.js runtime
+module type: ESM
 
 ## dependencies
 
@@ -503,6 +504,7 @@ beatport-sync/
 │   │   └── auth.js           # Token management
 │   └── utils/
 │       ├── logger.js         # Logging utilities
+│       ├── trackParser.js    # Parse library track name to extract mix
 │       └── prompts.js        # User interaction
 ├── templates/
 │   └── config.yml            # Default config template
@@ -520,7 +522,7 @@ beatport-sync/
   - [x] Init command: Config file generation and loading
   - [x] Database connection
   - [x] Database validation
-  - [ ] Basic API client with authentication
+  - [x] Basic API client with authentication
 
 ## Phase 2: Main Features
 

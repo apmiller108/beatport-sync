@@ -9,7 +9,7 @@ beatport:
   refresh_token: "your_refresh_token_here"
 
   # API settings
-  base_url: "https://api.beatport.com/v4"
+  base_url: "https://api.beatport.com/"
   max_retries: 3
 
 database:
