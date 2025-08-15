@@ -337,13 +337,13 @@ will have an empty results array
     1) accept the change, 2) refuse the change (skip) 3) accept this
     change and all future changes. The existing genre if it exists will
     be overwritten. Genre names do not need to be normalized.
-    
+
     ``` bash
     # Example interaction:
     Track: "Artist Name - Track Title"
     Current genre: "Electronic"
     Beatport genre: "Techno (Raw / Deep / Hypnotic)"
-    
+
     Accept this change? [y/n/a/q] (y=yes, n=no, a=accept all, q=quit)
     ```
 
@@ -354,7 +354,7 @@ will have an empty results array
     the update.
 
   - If the database is locked throw error:
-    
+
     ``` javascript
     // Mixxx might be running - how to handle?
     try {
@@ -381,7 +381,7 @@ The location of the mixxxdb.sqlite database will depend on the OS:
 ### Tables
 
 1.  library
-    
+
     ``` sql
     CREATE TABLE library (
             id INTEGER primary key AUTOINCREMENT,
@@ -435,7 +435,7 @@ The location of the mixxxdb.sqlite database will depend on the OS:
     ```
 
 2.  crates
-    
+
     ``` sql
     CREATE TABLE crates (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -445,7 +445,7 @@ The location of the mixxxdb.sqlite database will depend on the OS:
     ```
 
 3.  crate_tracks
-    
+
     ``` sql
     CREATE TABLE crate_tracks (
             crate_id INTEGER NOT NULL REFERENCES crates(id),
@@ -489,6 +489,7 @@ TBD
 beatport-sync/
 ├── package.json
 ├── README.md
+├── PROJECT.md                # Project plan document
 ├── src/
 │   ├── index.js              # CLI entry point
 │   ├── commands/
@@ -510,7 +511,7 @@ beatport-sync/
     └── fixtures/
 ```
 
-# Implementation phases
+# Implementation phases (TODOs)
 
 ## Phase 1: Core Functionality
 
@@ -518,7 +519,7 @@ beatport-sync/
     stubbed
   - [x] Init command: Config file generation and loading
   - [x] Database connection
-  - [ ] Database validation
+  - [x] Database validation
   - [ ] Basic API client with authentication
 
 ## Phase 2: Main Features

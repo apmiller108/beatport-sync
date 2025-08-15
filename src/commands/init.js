@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import { configFilePath } from '../lib/config.js'
+import { configFilePath, config, printConfig } from '../lib/config.js'
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
@@ -35,5 +35,10 @@ export const initCommand = new Command('init').description('Initialize configura
       return
     }
   }
+
+  if (config().options.verbose) {
+    printConfig()
+  }
+
   printInstructions()
 })
