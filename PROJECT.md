@@ -51,7 +51,8 @@ module type: ESM
 
   - better-sqlite3
   - fetch
-  - commander.js
+  - commander.js (CLI library)
+  - chalk (for enhanced terminal output)
 
 # Beatport API
 
@@ -515,7 +516,7 @@ beatport-sync/
 
 # Implementation phases (TODOs)
 
-## Phase 1: Core Functionality
+## [x] Phase 1: Core Functionality
 
   - [x] CLI setup with commander.js with init, stats and sync commands
     stubbed
@@ -526,7 +527,7 @@ beatport-sync/
 
 ## Phase 2: Main Features
 
-  - [ ] Stats command (good for testing database queries)
+  - [x] Stats command (good for testing database queries)
   - [ ] Sync command
       - [ ] Beatport API integration with retry logic. Fetch track data.
       - [ ] Creating filtering logic
@@ -536,6 +537,7 @@ beatport-sync/
 
 ## Phase 3: Polish
 
+  - [ ] Implement Oauth Flow. This has already been started. See lib/oauth.js.
   - [ ] Progress tracking and better UX
   - [ ] Error handling refinement
   - [ ] Rate limiting optimization
