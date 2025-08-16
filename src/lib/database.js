@@ -110,6 +110,28 @@ class DB {
        ORDER BY genre`
     ).all()
   }
+
+  getTracks(crates = []) {
+    let query = `
+      SELECT
+        l.id, l.artist, l.title, l.genre
+      FROM
+        library l
+    `
+
+    if (crates.length > 0) {
+      query += `
+        JOIN crate_tracks ct ON l.id = ct.track_id
+        JOIN crates c ON ct.crate_id = c.id
+        WHERE c.name IN (${crates.map(() => '?').join(',')})
+          AND l.mixxx_deleted = 0
+      `
+    } else {
+      query += ' WHERE l.mixxx_deleted = 0'
+    }
+
+    return this.db.prepare(query).all(crates)
+  }
 }
 
 const db = new DB()

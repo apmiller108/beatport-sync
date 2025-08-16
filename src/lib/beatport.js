@@ -1,5 +1,6 @@
 import fetch from 'node-fetch'
 import refreshToken from './auth.js'
+import { config as loadConfig } from './config.js'
 
 class BeatportAPI {
   constructor(config) {
@@ -57,8 +58,24 @@ class BeatportAPI {
       params.mix_name = mixName;
     }
 
-    return this.makeRequest('/v4/catalog/tracks/', 'GET', params);
+    try {
+      return await this.makeRequest('/v4/catalog/tracks/', 'GET', params);
+    } catch (error) {
+      if (error.message.includes('Authentication failed')) {
+        console.log('🔄 Refreshing access token...');
+        await refreshToken(this.config);
+        this.updateAccessToken();
+        console.log('✅ Access token refreshed successfully.');
+        return await this.makeRequest('/v4/catalog/tracks/', 'GET', params);
+      }
+    }
   }
+
+  updateAccessToken() {
+    this.config = loadConfig() // reload config to get updated tokens
+    this.accessToken = this.config.beatport.access_token;
+  }
+
 
   async enforceRateLimit() {
     const now = Date.now();

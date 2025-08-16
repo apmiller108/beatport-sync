@@ -529,8 +529,8 @@ beatport-sync/
 
   - [x] Stats command (good for testing database queries)
   - [ ] Sync command
-      - [ ] Beatport API integration with retry logic. Fetch track data.
-      - [ ] Creating filtering logic
+      - [x] Beatport API integration with retry logic. Fetch track data.
+      - [ ] Implement filtering logic. Filter by crates and existing genres
       - [ ] User prompts and interaction
       - [ ] Write genre details to the database record
       - [ ] Write logs
