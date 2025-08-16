@@ -7,16 +7,17 @@ class DB {
   /**
    * @param {object} config - The application configuration.
    */
-  constructor(config) {
+  constructor() {
     this.db = null
-    this.config = config
+    this.config = null
   }
 
   /**
    * Establishes a connection to the Mixxx database.
    */
   initialize() {
-    const dbPath = this.config.database.path === 'default' ? this.getDefaultDbPath() : path.resolve(this.config.database.path)
+    this.config = config()
+    const dbPath = this.dbPath()
 
     try {
       this.db = new Database(dbPath, { readonly: false })
@@ -36,6 +37,15 @@ class DB {
     }
   }
 
+  close() {
+    if (this.db) {
+      this.db.close()
+      if (this.config.verbose) {
+        console.log(`✅ Closed Mixxx database connection at: ${this.dbPath()}`)
+      }
+    }
+  }
+
   validateDatabase() {
     const tracksTable = this.db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='library'").get()
     const cratesTable = this.db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='crates'").get()
@@ -48,6 +58,11 @@ class DB {
         console.log('✅ Mixxx database validation successful.')
       }
     }
+  }
+
+  dbPath() {
+    return this.config.database.path === 'default' ? this.getDefaultDbPath() :
+      path.resolve(this.config.database.path)
   }
 
   /**
@@ -76,18 +91,26 @@ class DB {
         throw new Error('Unsupported operating system.')
     }
   }
-}
 
-let db
-try {
-  db = new DB(config())
-} catch (error) {
-  if (error.message.includes('Configuration file not found')) {
-    console.error('❌ Configuration file not found. Please run the init command to create it.')
-  } else {
-    console.error('❌ Error initializing database:', error.message)
+  getTrackCount() {
+    return this.db.prepare(
+      'SELECT COUNT(id) as count FROM library WHERE mixxx_deleted = 0'
+    ).get().count
   }
-  process.exit(1)
+
+  getCrates() {
+    return this.db.prepare('SELECT name FROM crates ORDER BY name').all()
+  }
+
+  getGenres() {
+    return this.db.prepare(
+      `SELECT DISTINCT genre FROM library
+       WHERE genre IS NOT NULL AND genre != ''
+             AND mixxx_deleted = 0
+       ORDER BY genre`
+    ).all()
+  }
 }
 
+const db = new DB()
 export default db
