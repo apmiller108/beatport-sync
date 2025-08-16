@@ -40,5 +40,14 @@ export const initCommand = new Command('init').description('Initialize configura
     printConfig()
   }
 
+  // TODO: implement OAuth flow
+  // if (options.oauth) {
+  //   await initOAuthFlow();
+  //   // TODO print confirmation message
+  // } else {
+  //   await initManualFlow();
+  //   printInstructions();
+  // }
+
   printInstructions()
 })

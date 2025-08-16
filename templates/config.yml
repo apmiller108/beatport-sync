@@ -2,7 +2,10 @@
 # Copy this file to ~/.beatport-sync.config.yml and fill in your credentials
 
 beatport:
-  # Required: Get these from the manual auth process
+  # OAuth method
+  username: "your_beatport_username"
+  password: "your_beatport_password"
+  # Manual auth method
   # See README.md for instructions
   client_id: "your_client_id_here"
   access_token: "your_access_token_here"
@@ -10,6 +13,7 @@ beatport:
 
   # API settings
   base_url: "https://api.beatport.com/"
+  redirect_uri: "https://api.beatport.com/v4/auth/o/post-message/"
   max_retries: 3
 
 database:
