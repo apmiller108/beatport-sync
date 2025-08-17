@@ -8,12 +8,11 @@ export const statsCommand = new Command('stats')
   .option('-d, --database <path>', 'Path to Mixxx database')
   .action(async (options) => {
     try {
-      console.log(chalk.blue.bold('🔍 Fetching database stats...'))
-      db.initialize()
+      db.initialize({ dbPath: options.database })
 
       console.log(chalk.blue.bold('📊 Database Stats'))
       console.log(chalk.gray('------------------'))
-      console.log(chalk.dim(`Location: ${db.dbPath()}`))
+      console.log(chalk.dim(`Location: ${db.dbPath}`))
 
       const trackCount = db.getTrackCount()
       console.log(`${chalk.bold('Total Tracks:')} ${chalk.green(trackCount)}`)

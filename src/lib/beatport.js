@@ -1,5 +1,5 @@
 import fetch from 'node-fetch'
-import refreshToken from './auth.js'
+import { refreshToken } from './auth.js'
 import { config as loadConfig } from './config.js'
 
 class BeatportAPI {

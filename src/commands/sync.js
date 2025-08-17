@@ -9,18 +9,20 @@ import { refreshToken } from '../lib/auth.js'
 export const syncCommand = new Command('sync')
   .description('Sync genres from Beatport to Mixxx database')
   .option('-c, --crates <crates>', 'Comma-separated list of crate names to filter by')
+  .option('-g, --genres <genres>', 'Comma-separated list of genres to filter by')
   .option('-a, --auto-accept', 'Automatically accept all changes without prompting')
   .option('-d, --database <path>', 'Path to Mixxx database')
   .action(async (options) => {
     try {
-      db.initialize()
+      db.initialize({ dbPath: options.database })
       let config = loadConfig()
       const api = new BeatportAPI(config)
 
       const crateNames = options.crates ? options.crates.split(',').map(name => name.trim()) : []
+      const genreNames = options.genres ? options.genres.split(',').map(name => name.trim()) : []
 
       console.log(chalk.blue('🎵 Starting Beatport sync...'))
-      const tracks = db.getTracks(crateNames)
+      const tracks = db.getTracks(crateNames, genreNames)
 
       if (tracks.length === 0) {
         console.log(chalk.yellow('No tracks found to process.'))
@@ -59,6 +61,10 @@ export const syncCommand = new Command('sync')
           // TODO: Prompt user for confirmation
           // TODO: Update database with new genre
         } catch (error) {
+          if (error.message.includes('Token refresh failed')) {
+            console.error(chalk.red('❌ Token refresh failed. Please set up your credentials again. see `beatport-sync init --help`'))
+            break
+          }
           console.error(chalk.red(`❌ Error processing track: ${error.message}`))
         }
       }

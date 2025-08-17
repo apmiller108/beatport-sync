@@ -1,17 +1,16 @@
 import fetch from 'node-fetch'
-import { config, saveConfig } from './config.js';
+import { saveConfig } from './config.js';
 
-export async function refreshToken(config) {
-  const conf = config()
-  const response = await fetch(`${conf.beatport.base_url}/v4/auth/o/token/`, {
+export const refreshToken = async(config) => {
+  const response = await fetch(`${config.beatport.base_url}/v4/auth/o/token/`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${conf.beatport.access_token}`,
+      'Authorization': `Bearer ${config.beatport.access_token}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      client_id: conf.beatport.client_id,
-      refresh_token: conf.beatport.refresh_token,
+      client_id: config.beatport.client_id,
+      refresh_token: config.beatport.refresh_token,
       grant_type: 'refresh_token'
     })
   });
@@ -22,10 +21,10 @@ export async function refreshToken(config) {
 
   const tokenData = await response.json();
 
-  conf.beatport.access_token = tokenData.access_token;
-  conf.beatport.refresh_token = tokenData.refresh_token;
+  config.beatport.access_token = tokenData.access_token;
+  config.beatport.refresh_token = tokenData.refresh_token;
 
-  await saveConfig(conf);
+  await saveConfig(config);
 
   return tokenData;
 }

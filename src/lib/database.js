@@ -15,15 +15,15 @@ class DB {
   /**
    * Establishes a connection to the Mixxx database.
    */
-  initialize() {
+  initialize({ dbPath } = {}) {
     this.config = config()
-    const dbPath = this.dbPath()
+    const path = dbPath || this.dbPath()
 
     try {
-      this.db = new Database(dbPath, { readonly: false })
+      this.db = new Database(path, { readonly: false })
       this.validateDatabase()
       this.db.pragma('journal_mode = WAL') // Use Write-Ahead Logging for better concurrency
-      console.log(`Connected to Mixxx database at: ${dbPath}`)
+      console.log(`Connected to Mixxx database at: ${path}`)
     } catch (error) {
       if (error.code === 'SQLITE_BUSY') {
         console.error('❌ Database is locked. Please close Mixxx and try again.')
@@ -99,7 +99,13 @@ class DB {
   }
 
   getCrates() {
-    return this.db.prepare('SELECT name FROM crates ORDER BY name').all()
+    return this.db.prepare(
+      `SELECT DISTINCT name FROM crates
+       JOIN crate_tracks ON crates.id = crate_tracks.crate_id
+       JOIN library ON crate_tracks.track_id = library.id
+       WHERE library.mixxx_deleted = 0
+       ORDER BY name`
+    ).all()
   }
 
   getGenres() {
@@ -111,7 +117,7 @@ class DB {
     ).all()
   }
 
-  getTracks(crates = []) {
+  getTracks(crates = [], genres = []) {
     let query = `
       SELECT
         l.id, l.artist, l.title, l.genre
@@ -119,7 +125,7 @@ class DB {
         library l
     `
 
-    if (crates.length > 0) {
+    if (crates.length) {
       query += `
         JOIN crate_tracks ct ON l.id = ct.track_id
         JOIN crates c ON ct.crate_id = c.id
@@ -130,7 +136,15 @@ class DB {
       query += ' WHERE l.mixxx_deleted = 0'
     }
 
-    return this.db.prepare(query).all(crates)
+    if (genres.length) {
+      query += ` AND genre IN (${genres.map(g => '?').join(',')})`
+    }
+
+    if (this.config.options.verbose) {
+      console.log(`Executing query:\n${query}\n`)
+    }
+
+    return this.db.prepare(query).all([...crates, ...genres])
   }
 }
 
