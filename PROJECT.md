@@ -550,3 +550,25 @@ beatport-sync/
   - Very long genre names - Beatport genres might exceed varchar(64)
   - Special characters in artist/track names affecting API calls
   - Network timeouts - how long to wait for API responses?
+
+# Misc Notes
+## Query to clean up library titles
+
+```sql
+SELECT
+    title as original,
+    TRIM(SUBSTR(title, 1, INSTR(title, ' - ') - 1)) as new_title
+FROM library
+WHERE title LIKE '% - % - %B% - %';
+
+
+UPDATE library
+SET title = TRIM(
+    SUBSTR(
+        title,
+        1,
+        INSTR(title, ' - ') - 1
+    )
+)
+WHERE title LIKE '% - % - %B% - %';
+```

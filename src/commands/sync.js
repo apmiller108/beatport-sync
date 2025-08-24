@@ -5,6 +5,7 @@ import BeatportAPI from '../lib/beatport.js'
 import { parseTrackName } from '../utils/trackParser.js'
 import { config as loadConfig } from '../lib/config.js'
 import { refreshToken } from '../lib/auth.js'
+import { confirmUpdate } from '../utils/prompts.js'
 
 export const syncCommand = new Command('sync')
   .description('Sync genres from Beatport to Mixxx database')
@@ -32,10 +33,6 @@ export const syncCommand = new Command('sync')
       console.log(`🔍 Found ${chalk.green(tracks.length)} tracks to process.`) 
 
       for (const [index, track] of tracks.entries()) {
-        if (index === 15) {
-          console.log('only doing 3 for now')
-          break;
-        }
 
         console.log(
           `\n${chalk.dim(`(${index + 1}/${tracks.length})`)} Processing: ${chalk.cyan(track.artist)} - ${chalk.cyan(track.title)}`
@@ -58,8 +55,37 @@ export const syncCommand = new Command('sync')
           console.log(`🔍 Current genre: ${chalk.dim(track.genre || 'None')}`)
           console.log(`✅ Found genre: ${chalk.green(newGenre)}`)
 
-          // TODO: Prompt user for confirmation
-          // TODO: Update database with new genre
+          if (track.genre === newGenre) {
+            console.log(chalk.gray('⏭️ Genre is the same, skipping update.'))
+            continue
+          }
+
+          if (options.autoAccept) {
+            db.updateTrackGenre(track, newGenre)
+            console.log(chalk.green('✅ Genre updated automatically.'))
+            continue
+          }
+
+          const choice = await confirmUpdate(track, newGenre)
+          switch (choice) {
+            case 'yes':
+              db.updateTrackGenre(track, newGenre)
+              console.log(chalk.green('✅ Genre updated.'))
+              break
+            case 'all':
+              db.updateTrackGenre(track, newGenre)
+              console.log(chalk.green('✅ Genre updated. All future changes will be accepted automatically.'))
+              options.autoAccept = true
+              break
+            case 'quit':
+              console.log(chalk.yellow('👋 Quitting sync process.'))
+              db.close()
+              return
+            case 'no':
+            default:
+              console.log(chalk.gray('⏭️ Change skipped.'))
+              break
+          }
         } catch (error) {
           if (error.message.includes('Token refresh failed')) {
             console.error(chalk.red('❌ Token refresh failed. Please set up your credentials again. see `beatport-sync init --help`'))

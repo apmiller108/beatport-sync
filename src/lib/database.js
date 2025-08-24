@@ -146,6 +146,17 @@ class DB {
 
     return this.db.prepare(query).all([...crates, ...genres])
   }
+
+  updateTrackGenre(track, newGenre) {
+    const stmt = this.db.prepare('UPDATE library SET genre = ? WHERE id = ?')
+    const info = stmt.run(newGenre, track.id)
+    if (info.changes === 0) {
+      throw new Error(`No track found with ID: ${track.id}`)
+    }
+    if (this.config.options.verbose) {
+      console.log(`Updated track ID ${track.id} with new genre: ${newGenre}`)
+    }
+  }
 }
 
 const db = new DB()
