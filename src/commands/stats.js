@@ -12,7 +12,7 @@ export const statsCommand = new Command('stats')
 
       console.log(chalk.blue.bold('📊 Database Stats'))
       console.log(chalk.gray('------------------'))
-      console.log(chalk.dim(`Location: ${db.dbPath}`))
+      console.log(chalk.dim(`Location: ${db.dbPath()}`))
 
       const trackCount = db.getTrackCount()
       console.log(`${chalk.bold('Total Tracks:')} ${chalk.green(trackCount)}`)
