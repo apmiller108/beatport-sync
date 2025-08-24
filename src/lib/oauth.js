@@ -41,7 +41,7 @@ class BeatportOAuth {
     const authCode = new URL(location).searchParams.get('code');
 
     // 5. Exchange code for tokens
-    // TODO implement this. POST JSON
+    // TODO implement this at a POST request with JSON body
     // const tokenUrl = new URL(`${this.baseUrl}/auth/o/token/`);
     // tokenUrl.searchParams.set('code', authCode);
     // tokenUrl.searchParams.set('grant_type', 'authorization_code');
@@ -52,7 +52,7 @@ class BeatportOAuth {
     // const tokenData = await tokenResponse.json();
 
     return {
-      // client_id: clientId,
+      client_id: clientId,
       access_token: tokenData.access_token,
       refresh_token: tokenData.refresh_token,
       expires_in: tokenData.expires_in

@@ -528,20 +528,17 @@ beatport-sync/
 ## Phase 2: Main Features
 
   - [x] Stats command (good for testing database queries)
-  - [ ] Sync command
+  - [x] Sync command
       - [x] Beatport API integration with retry logic. Fetch track data.
       - [x] Implement filtering logic. Filter by crates and existing genres
-      - [ ] User prompts and interaction
-      - [ ] Write genre details to the database record
-      - [ ] Write logs
+      - [x] User prompts and interaction
+      - [x] Write genre details to the database record
 
 ## Phase 3: Polish
 
   - [ ] Implement Oauth Flow. This has already been started. See lib/oauth.js.
-  - [ ] Progress tracking and better UX
-  - [ ] Error handling refinement
-  - [ ] Rate limiting optimization
-  - [ ] Unit tests
+  - [ ] Fix bug where list of genres or crates is interpreted as another argument. Current it only works properly when one genre or crate is specified. Passing more than one gives: `error: too many arguments for 'sync'. Expected 0 arguments but got 1.
+`
 
 ## Potential Edge Cases to Consider
 
