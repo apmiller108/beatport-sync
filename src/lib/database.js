@@ -125,11 +125,12 @@ class DB {
         library l
     `
 
+    // TODO downcase crate and genre names for case-insensitive matching
     if (crates.length) {
       query += `
         JOIN crate_tracks ct ON l.id = ct.track_id
         JOIN crates c ON ct.crate_id = c.id
-        WHERE c.name IN (${crates.map(() => '?').join(',')})
+        WHERE LOWER(c.name) IN (${crates.map(() => '?').join(',')})
           AND l.mixxx_deleted = 0
       `
     } else {
@@ -137,14 +138,19 @@ class DB {
     }
 
     if (genres.length) {
-      query += ` AND genre IN (${genres.map(g => '?').join(',')})`
+      query += ` AND LOWER(genre) IN (${genres.map(g => '?').join(',')})`
     }
 
     if (this.config.options.verbose) {
       console.log(`Executing query:\n${query}\n`)
     }
 
-    return this.db.prepare(query).all([...crates, ...genres])
+    return this.db.prepare(query).all(
+      [
+        ...crates.map(c => c.toLowerCase()),
+        ...genres.map(g => g.toLowerCase())
+      ]
+    )
   }
 
   updateTrackGenre(track, newGenre) {
