@@ -1,92 +1,178 @@
-// src/lib/beatport-oauth.js
-class BeatportOAuth {
+export default class BeatportOAuth {
   constructor(config) {
-    this.config = config.beatport
+    this.config = config.beatport;
   }
 
-  async authorize() {
-    // 1. Discover client ID
-    const clientId = await fetchBeatportClientId();
+  async authorize(username, password) {
+    try {
+      // 1. Discover client ID
+      const clientId = await this.fetchBeatportClientId();
+      console.log('🔍 Discovered client ID:', clientId);
 
-    // 2. Create session and login
-    const loginResponse = await fetch(`${this.config.base_url}/auth/login/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        username: this.config.username,
-        password: this.config.password
-      })
-    });
+      // 2. Create session and login
 
-    const loginData = await loginResponse.json();
-    if (!loginData.username || !loginData.email) {
-      throw new Error(`Beatport login failed: ${JSON.stringify(loginData)}`);
-    }
+      const loginURL = new URL('v4/auth/login/?next=/v4/auth/o/authorize/', this.config.base_url)
+      loginURL.searchParams.set('response_type', 'code');
+      loginURL.searchParams.set('client_id', clientId);
+      loginURL.searchParams.set('redirect_uri', this.config.redirectUri);
+      const loginResponse = await fetch(loginURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: username,
+          password: password
+        })
+      });
 
-    // 3. Get authorization code
-    const authUrl = new URL(`${this.config.base_url}/auth/o/authorize/`);
-    authUrl.searchParams.set('response_type', 'code');
-    authUrl.searchParams.set('client_id', clientId);
-    authUrl.searchParams.set('redirect_uri', this.redirectUri);
-
-    const authResponse = await fetch(authUrl, {
-      redirect: 'manual',
-      headers: {
-        'Cookie': this.extractCookies(loginResponse) // TODO: implement extractCookies
+      if (!loginResponse.ok) {
+        throw new Error(
+          `Login request failed: ${loginResponse.status} ${loginResponse.statusText}`
+        );
       }
-    });
 
-    // 4. Extract auth code from redirect
-    const location = authResponse.headers.get('location');
-    const authCode = new URL(location).searchParams.get('code');
+      // // 3. Get authorization code
+      const authUrl = new URL('v4/auth/o/authorize/', this.config.base_url);
+      authUrl.searchParams.set('response_type', 'code');
+      authUrl.searchParams.set('client_id', clientId);
+      authUrl.searchParams.set('redirect_uri', this.config.redirect_uri);
 
-    // 5. Exchange code for tokens
-    // TODO implement this at a POST request with JSON body
-    // const tokenUrl = new URL(`${this.baseUrl}/auth/o/token/`);
-    // tokenUrl.searchParams.set('code', authCode);
-    // tokenUrl.searchParams.set('grant_type', 'authorization_code');
-    // tokenUrl.searchParams.set('redirect_uri', this.redirectUri);
-    // tokenUrl.searchParams.set('client_id', clientId);
+      const authResponse = await fetch(authUrl, {
+        redirect: 'manual',
+        headers: {
+          'Cookie': this.extractCookies(loginResponse)
+        }
+      });
 
-    // const tokenResponse = await fetch(tokenUrl, { method: 'POST' });
-    // const tokenData = await tokenResponse.json();
+      const res = await authResponse.text()
+      console.log(res)
 
-    return {
-      client_id: clientId,
-      access_token: tokenData.access_token,
-      refresh_token: tokenData.refresh_token,
-      expires_in: tokenData.expires_in
-    };
+      // Check for auth errors
+      if (authResponse.status !== 302) {
+        const errorText = await authResponse.text();
+        if (errorText.includes('invalid_request')) {
+          const errorMatch = errorText.match(/<p>(.*?)<\/p>/);
+          const errorMsg = errorMatch ? errorMatch[1] : 'Unknown authorization error';
+          throw new Error(`Authorization failed: ${errorMsg}`);
+        }
+      }
+
+      // 4. Extract auth code from redirect
+      const location = authResponse.headers.get('location');
+      if (!location) {
+        throw new Error('No redirect location found in authorization response');
+      }
+
+      console.log('🔄 Redirected to:', location);
+
+      const locationUrl = new URL(location, this.config.base_url);
+      const authCode = locationUrl.searchParams.get('code');
+      if (!authCode) {
+        throw new Error('No authorization code found in redirect URL');
+      }
+
+      console.log('🔑 Got authorization code');
+
+      // 5. Exchange code for tokens
+      const tokenResponse = await fetch(new URL('v4/auth/o/token', this.config.base_url), {
+        method: 'POST',
+        headers: {
+          'Cookie': this.extractCookies(loginResponse),
+          'Content-Type': 'application/json',
+          'Referer': 'https://api.beatport.com/v4/docs/'
+        },
+        body: JSON.stringify({
+          code: authCode,
+          grant_type: 'authorization_code',
+          redirect_uri: this.config.redirect_uri,
+          client_id: clientId
+        })
+      });
+
+      const text = await tokenResponse.text()
+      console.log(text)
+
+      const tokenData = await tokenResponse.json();
+
+      if (!tokenData.access_token) {
+        throw new Error(`Token exchange failed: ${JSON.stringify(tokenData)}`);
+      }
+
+      console.log('🎉 Successfully obtained access tokens');
+
+      return {
+        client_id: clientId,
+        access_token: tokenData.access_token,
+        refresh_token: tokenData.refresh_token,
+        expires_in: tokenData.expires_in,
+        token_type: tokenData.token_type,
+        scope: tokenData.scope
+      };
+
+    } catch (error) {
+      console.error('❌ OAuth authorization failed:', error.message);
+      throw error;
+    }
   }
 
   async fetchBeatportClientId() {
     try {
       // 1. Fetch the docs page
-      const docsResponse = await fetch(`${this.config.base_url}/v4/docs/`);
+      const docsResponse = await fetch(new URL('v4/docs/', this.config.base_url));
+      if (!docsResponse.ok) {
+        throw new Error(`Failed to fetch docs page: ${docsResponse.status}`);
+      }
+
       const html = await docsResponse.text();
 
       // 2. Extract script URLs
-      const scriptMatches = html.match(/src="([^"]*\.js[^"]*)"/g);
-
-      for (const match of scriptMatches) {
-        const scriptUrl = match.match(/src="([^"]*)"/)[1];
-        const fullUrl = `${this.config.base_url}${scriptUrl}`;
-
-        // 3. Fetch and search each script
-        const jsResponse = await fetch(fullUrl);
-        const jsContent = await jsResponse.text();
-
-        // 4. Look for client ID pattern
-        const clientIdMatch = jsContent.match(/API_CLIENT_ID:\s*['"](.*?)['"]/)
-
-        if (clientIdMatch) {
-          return clientIdMatch[1];
-        }
+      const jsScripts = html.match(/src="([^"]*\.js[^"]*)"/g);
+      if (!jsScripts || jsScripts.length === 0) {
+        throw new Error('No JavaScript files found in docs page');
       }
 
-      throw new Error('Could not fetch API_CLIENT_ID from Beatport docs');
+      console.log(`🔍 Searching ${jsScripts.length} JavaScript files for client ID...`);
+
+      let clientId;
+      for (const script of jsScripts) {
+        const scriptUrl = script.match(/src="([^"]*)"/)[1];
+        const fullUrl = scriptUrl.startsWith('http')
+              ? scriptUrl : new URL(scriptUrl, this.config.base_url)
+
+        try {
+          // 3. Fetch and search each script
+          const jsResponse = await fetch(fullUrl);
+          if (!jsResponse.ok) continue;
+
+          const jsContent = await jsResponse.text();
+
+          // 4. Look for client ID
+          clientId = jsContent.match(/API_CLIENT_ID:\s*['"](.*)['"]/)[1]
+
+          if (clientId) {
+            break;
+          }
+        } catch (scriptError) {
+          // Continue to next script if this one fails
+          console.debug(`Failed to fetch script ${fullUrl}:`, scriptError.message);
+          continue;
+        }
+      }
+      if (clientId) {
+        return clientId;
+      } else {
+        throw new Error('Could not find API_CLIENT_ID in any JavaScript files');
+      }
     } catch (error) {
       throw new Error(`Failed to discover Beatport client ID: ${error.message}`);
     }
+  }
+
+  extractCookies(response) {
+    const setCookieHeaders = response.headers.getSetCookie();
+    if (!setCookieHeaders) return '';
+
+    return setCookieHeaders
+      .map(cookie => cookie.split(';')[0]) // Take only the name=value part
+      .join('; ');
   }
 }
