@@ -9,6 +9,7 @@ beatport:
 
   # API settings
   base_url: "https://api.beatport.com/"
+  user_agent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
   redirect_uri: "https://api.beatport.com/v4/auth/o/post-message/"
   max_retries: 3
 
@@ -23,4 +24,4 @@ logging:
 options:
   auto_accept: false
   overwrite_existing_genres: true
-  verbose: false
+  verbose: true

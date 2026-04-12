@@ -92,10 +92,39 @@ class DB {
     }
   }
 
-  getTrackCount() {
-    return this.db.prepare(
-      'SELECT COUNT(id) as count FROM library WHERE mixxx_deleted = 0'
-    ).get().count
+  getTrackCount(crates = [], genres = [], missingGenre = false) {
+    let query = `
+      SELECT
+        COUNT(l.id) as count
+      FROM
+        library l
+    `
+
+    if (crates.length) {
+      query += `
+        JOIN crate_tracks ct ON l.id = ct.track_id
+        JOIN crates c ON ct.crate_id = c.id
+        WHERE LOWER(c.name) IN (${crates.map(() => '?').join(',')})
+          AND l.mixxx_deleted = 0
+      `
+    } else {
+      query += ' WHERE l.mixxx_deleted = 0'
+    }
+
+    if (genres.length) {
+      query += ` AND LOWER(genre) IN (${genres.map(g => '?').join(',')})`
+    }
+
+    if (missingGenre) {
+      query += " AND (l.genre IS NULL OR l.genre = '')"
+    }
+
+    return this.db.prepare(query).get(
+      [
+        ...crates.map(c => c.toLowerCase()),
+        ...genres.map(g => g.toLowerCase())
+      ]
+    ).count
   }
 
   getCrates() {
@@ -117,10 +146,10 @@ class DB {
     ).all()
   }
 
-  getTracks(crates = [], genres = []) {
+  getTracks(crates = [], genres = [], missingGenre = false) {
     let query = `
       SELECT
-        l.id, l.artist, l.title, l.genre
+        l.id, l.artist, l.title, l.genre, l.year, l.grouping
       FROM
         library l
     `
@@ -141,6 +170,13 @@ class DB {
       query += ` AND LOWER(genre) IN (${genres.map(g => '?').join(',')})`
     }
 
+    if (missingGenre) {
+      query += " AND (l.genre IS NULL OR l.genre = '')"
+    }
+
+    query += " AND l.artist IS NOT NULL and l.title IS NOT NULL" // search requires both artist and title to be present
+    query += " ORDER BY l.id DESC"
+
     if (this.config.options.verbose) {
       console.log(`Executing query:\n${query}\n`)
     }
@@ -153,15 +189,28 @@ class DB {
     )
   }
 
-  updateTrackGenre(track, newGenre) {
-    const stmt = this.db.prepare('UPDATE library SET genre = ? WHERE id = ?')
-    const info = stmt.run(newGenre, track.id)
+  updateTrack(trackId, updates) {
+    const fields = Object.keys(updates)
+    if (fields.length === 0) return
+
+    const setClause = fields.map(field => `${field} = ?`).join(', ')
+    const values = Object.values(updates)
+    values.push(trackId)
+
+    const stmt = this.db.prepare(`UPDATE library SET ${setClause} WHERE id = ?`)
+    const info = stmt.run(...values)
+
     if (info.changes === 0) {
-      throw new Error(`No track found with ID: ${track.id}`)
+      throw new Error(`No track found with ID: ${trackId}`)
     }
+
     if (this.config.options.verbose) {
-      console.log(`Updated track ID ${track.id} with new genre: ${newGenre}`)
+      console.log(`Updated track ID ${trackId}: ${JSON.stringify(updates)}`)
     }
+  }
+
+  updateTrackGenre(track, newGenre) {
+    this.updateTrack(track.id, { genre: newGenre })
   }
 }
 

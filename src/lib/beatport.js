@@ -7,11 +7,13 @@ class BeatportAPI {
     this.config = config;
     this.baseUrl = config.beatport.base_url;
     this.accessToken = config.beatport.access_token;
+    this.userAgent = config.beatport.user_agent || 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36';
     this.rateLimitDelay = 1000; // 1 req/s
     this.lastRequestTime = 0;
   }
 
   async makeRequest(endpoint, method = 'GET', params = {}) {
+    console.log(this.config)
     // Rate limiting
     await this.enforceRateLimit();
 
@@ -28,10 +30,13 @@ class BeatportAPI {
       headers: {
         'Authorization': `Bearer ${this.accessToken}`,
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'User-Agent': this.userAgent
       },
       method
     });
+
+    console.log(`📊 Received response: ${response.status} ${response.statusText}`);
 
     if (response.status === 429) {
       throw new Error('Rate limited by Beatport API');

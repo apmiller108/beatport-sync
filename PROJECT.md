@@ -27,18 +27,18 @@ for that track from the JSON response (`results[0].genre.name`)
 
 ``` bash
 # Main sync command
-beatport-sync sync [--crates crate1,crate2] [--auto-accept] [--database /path/to/db]
+beatport-sync sync [--crates crate1,crate2] [--genres genre1,genre2] [--missing-genre] [--auto-accept] [--database /path/to/db]
 
 # Stats command
-beatport-sync stats [--database /path/to/db]
+beatport-sync stats [--crates crate1,crate2] [--genres genre1,genre2] [--missing-genre] [--database /path/to/db]
 
 # Config generation
 beatport-sync init
+```
 
 # additional commands
 beatport-sync --help
 beatport-sync --version
-```
 
 There is no default command. An explicit command is required.
 
@@ -93,6 +93,8 @@ To get an Access Token:
   "refresh_token": "abcd1234"
 }
 ```
+
+Put the data in the .beatport-sync.config file. Also, you'll get 409s unless you set a user agent header to the browser's.
 
 How should this data be provided to the CLI tool? Store this data in a
 config file: .beatport-sync.config.yml in the user's home directory.
@@ -531,8 +533,9 @@ beatport-sync/
   - [x] Sync command
       - [x] Beatport API integration with retry logic. Fetch track data.
       - [x] Implement filtering logic. Filter by crates and existing genres
-      - [x] User prompts and interaction
-      - [x] Write genre details to the database record
+      - [x] Add -m/--missing-genre filter to target tracks with no genre information
+      - [x] User prompts and interaction for multiple metadata fields (Genre, Year, Label)
+      - [x] Write genre, year, and label (grouping) details to the database record
 
 ## Phase 3: Polish
 

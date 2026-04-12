@@ -1,6 +1,7 @@
 export default class BeatportOAuth {
   constructor(config) {
     this.config = config.beatport;
+    this.userAgent = config.beatport.user_agent || 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36';
   }
 
   async authorize(username, password) {
@@ -17,7 +18,10 @@ export default class BeatportOAuth {
       loginURL.searchParams.set('redirect_uri', this.config.redirectUri);
       const loginResponse = await fetch(loginURL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': this.userAgent
+        },
         body: JSON.stringify({
           username: username,
           password: password
@@ -39,7 +43,8 @@ export default class BeatportOAuth {
       const authResponse = await fetch(authUrl, {
         redirect: 'manual',
         headers: {
-          'Cookie': this.extractCookies(loginResponse)
+          'Cookie': this.extractCookies(loginResponse),
+          'User-Agent': this.userAgent
         }
       });
 
@@ -78,7 +83,8 @@ export default class BeatportOAuth {
         headers: {
           'Cookie': this.extractCookies(loginResponse),
           'Content-Type': 'application/json',
-          'Referer': 'https://api.beatport.com/v4/docs/'
+          'Referer': 'https://api.beatport.com/v4/docs/',
+          'User-Agent': this.userAgent
         },
         body: JSON.stringify({
           code: authCode,
@@ -117,7 +123,11 @@ export default class BeatportOAuth {
   async fetchBeatportClientId() {
     try {
       // 1. Fetch the docs page
-      const docsResponse = await fetch(new URL('v4/docs/', this.config.base_url));
+      const docsResponse = await fetch(new URL('v4/docs/', this.config.base_url), {
+        headers: {
+          'User-Agent': this.userAgent
+        }
+      });
       if (!docsResponse.ok) {
         throw new Error(`Failed to fetch docs page: ${docsResponse.status}`);
       }
@@ -140,7 +150,11 @@ export default class BeatportOAuth {
 
         try {
           // 3. Fetch and search each script
-          const jsResponse = await fetch(fullUrl);
+          const jsResponse = await fetch(fullUrl, {
+            headers: {
+              'User-Agent': this.userAgent
+            }
+          });
           if (!jsResponse.ok) continue;
 
           const jsContent = await jsResponse.text();
