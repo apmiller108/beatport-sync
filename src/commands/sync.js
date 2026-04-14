@@ -1,6 +1,7 @@
 import { Command } from 'commander'
 import chalk from 'chalk'
 import db from '../lib/database.js'
+import cache from '../lib/cache.js'
 import BeatportAPI from '../lib/beatport.js'
 import { parseTrackName } from '../utils/trackParser.js'
 import { config as loadConfig } from '../lib/config.js'
@@ -12,6 +13,7 @@ export const syncCommand = new Command('sync')
   .option('-c, --crates <crates>', 'Comma-separated list of crate names to filter by')
   .option('-g, --genres <genres>', 'Comma-separated list of genres to filter by')
   .option('-m, --missing-genre', 'Only process tracks that are missing genre information')
+  .option('-s, --skip-cache', 'Skip the "no match" cache and search for all tracks')
   .option('-a, --auto-accept', 'Automatically accept all changes without prompting')
   .option('-d, --database <path>', 'Path to Mixxx database')
   .action(async (options) => {
@@ -24,11 +26,17 @@ export const syncCommand = new Command('sync')
       const genreNames = options.genres ? options.genres.split(',').map(name => name.trim()) : []
 
       console.log(chalk.blue('🎵 Starting Beatport sync...'))
-      const tracks = db.getTracks(crateNames, genreNames, options.missingGenre)
+      
+      const excludeIds = options.skipCache ? [] : cache.getNoMatchIds()
+      const tracks = db.getTracks(crateNames, genreNames, options.missingGenre, excludeIds)
 
       if (tracks.length === 0) {
         console.log(chalk.yellow('No tracks found to process.'))
         return
+      }
+
+      if (excludeIds.length > 0 && !options.skipCache) {
+        console.log(chalk.dim(`ℹ️ Skipping ${excludeIds.length} tracks previously marked as "no match".`))
       }
 
       console.log(`🔍 Found ${chalk.green(tracks.length)} tracks to process.`)
@@ -39,13 +47,13 @@ export const syncCommand = new Command('sync')
           `\n${chalk.dim(`(${index + 1}/${tracks.length})`)} Processing: ${chalk.cyan(track.artist)} - ${chalk.cyan(track.title)}`
         )
 
-        console.log(track)
         try {
           const parsedTrack = parseTrackName(track.title)
           const beatportTrack = await api.searchTrack(track.artist, parsedTrack.name, parsedTrack.mix)
 
           if (!beatportTrack || beatportTrack.results.length === 0) {
-            console.log(chalk.yellow('❌ No match found.'))
+            console.log(chalk.yellow('❌ No match found. Adding to cache.'))
+            cache.addNoMatch(track.id)
             continue
           }
 
@@ -87,7 +95,6 @@ export const syncCommand = new Command('sync')
               break
             case 'quit':
               console.log(chalk.yellow('👋 Quitting sync process.'))
-              db.close()
               return
             case 'no':
             default:
@@ -106,6 +113,7 @@ export const syncCommand = new Command('sync')
       console.error(chalk.red(`❌ An unexpected error occurred: ${error.message}`)) 
     } finally {
       db.close()
+      cache.close()
       console.log('\n✨ Sync process complete.')
     }
   })

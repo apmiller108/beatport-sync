@@ -26,10 +26,12 @@ beatport-sync/
 │   ├── commands/
 │   │   ├── sync.js           # Main sync command
 │   │   ├── stats.js          # Database stats
-│   │   └── init.js           # Config initialization
+│   │   ├── init.js           # Config initialization
+│   │   └── cache.js          # Cache management
 │   ├── lib/
 │   │   ├── config.js         # Config file handling
 │   │   ├── database.js       # SQLite operations
+│   │   ├── cache.js          # No-match cache operations
 │   │   ├── beatport.js       # API client
 │   │   └── auth.js           # Token management
 │   └── utils/
@@ -105,7 +107,20 @@ Prints:
 - Crate names
 - Genre names
 
-#### 3. Init
+#### 3. Cache
+
+Manage the "no match" cache to skip tracks previously not found on Beatport:
+
+```bash
+beatport-sync cache clear
+beatport-sync cache stats
+```
+
+**Commands:**
+- `clear` — Clear the cache of track IDs with no matches.
+- `stats` — Show the number of tracks currently in the "no match" cache.
+
+#### 4. Init
 
 Generate and review the configuration file:
 
@@ -113,7 +128,7 @@ Generate and review the configuration file:
 beatport-sync init
 ```
 
-#### 4. Help & Version
+#### 5. Help & Version
 
 ```bash
 beatport-sync --help
@@ -130,7 +145,7 @@ To undo changes, restore your `mixxxdb.sqlite` from a backup.
 
 ## Edge Cases
 
-- Tracks with no Beatport match are skipped.
+- Tracks with no Beatport match are skipped and added to a local cache to be skipped in future syncs (use `cache clear` to reset).
 - Empty crates, deleted tracks (`mixxx_deleted = 1`), special characters, network errors, and long genre names are handled gracefully.
 
 ## License

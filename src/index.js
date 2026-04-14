@@ -9,6 +9,7 @@ import { dirname, join } from 'path'
 import { syncCommand } from './commands/sync.js'
 import { statsCommand } from './commands/stats.js'
 import { initCommand } from './commands/init.js'
+import { cacheCommand } from './commands/cache.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -27,6 +28,7 @@ program
 program.addCommand(syncCommand)
 program.addCommand(statsCommand)
 program.addCommand(initCommand)
+program.addCommand(cacheCommand)
 
 // Parse command line arguments
 program.parse()

@@ -92,7 +92,7 @@ class DB {
     }
   }
 
-  getTrackCount(crates = [], genres = [], missingGenre = false) {
+  getTrackCount(crates = [], genres = [], missingGenre = false, excludeIds = []) {
     let query = `
       SELECT
         COUNT(l.id) as count
@@ -119,10 +119,15 @@ class DB {
       query += " AND (l.genre IS NULL OR l.genre = '')"
     }
 
+    if (excludeIds.length) {
+      query += ` AND l.id NOT IN (${excludeIds.map(() => '?').join(',')})`
+    }
+
     return this.db.prepare(query).get(
       [
         ...crates.map(c => c.toLowerCase()),
-        ...genres.map(g => g.toLowerCase())
+        ...genres.map(g => g.toLowerCase()),
+        ...excludeIds
       ]
     ).count
   }
@@ -146,7 +151,7 @@ class DB {
     ).all()
   }
 
-  getTracks(crates = [], genres = [], missingGenre = false) {
+  getTracks(crates = [], genres = [], missingGenre = false, excludeIds = []) {
     let query = `
       SELECT
         l.id, l.artist, l.title, l.genre, l.year, l.grouping
@@ -174,6 +179,10 @@ class DB {
       query += " AND (l.genre IS NULL OR l.genre = '')"
     }
 
+    if (excludeIds.length) {
+      query += ` AND l.id NOT IN (${excludeIds.map(() => '?').join(',')})`
+    }
+
     query += " AND l.artist IS NOT NULL and l.title IS NOT NULL" // search requires both artist and title to be present
     query += " ORDER BY l.id DESC"
 
@@ -184,7 +193,8 @@ class DB {
     return this.db.prepare(query).all(
       [
         ...crates.map(c => c.toLowerCase()),
-        ...genres.map(g => g.toLowerCase())
+        ...genres.map(g => g.toLowerCase()),
+        ...excludeIds
       ]
     )
   }

@@ -13,7 +13,6 @@ class BeatportAPI {
   }
 
   async makeRequest(endpoint, method = 'GET', params = {}) {
-    console.log(this.config)
     // Rate limiting
     await this.enforceRateLimit();
 
@@ -73,6 +72,7 @@ class BeatportAPI {
         console.log('✅ Access token refreshed successfully.');
         return await this.makeRequest('/v4/catalog/tracks/', 'GET', params);
       }
+      throw error;
     }
   }
 
