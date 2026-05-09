@@ -82,14 +82,18 @@ export const syncCommand = new Command('sync')
             continue
           }
 
-          const choice = await confirmUpdate(track, updates)
-          switch (choice) {
+          const { action, updates: selectedUpdates } = await confirmUpdate(track, updates)
+          switch (action) {
             case 'yes':
-              db.updateTrack(track.id, updates)
+              db.updateTrack(track.id, selectedUpdates)
               console.log(chalk.green('✅ Metadata updated.'))
               break
+            case 'partial':
+              db.updateTrack(track.id, selectedUpdates)
+              console.log(chalk.green(`✅ Updated fields: ${Object.keys(selectedUpdates).join(', ')}.`))
+              break
             case 'all':
-              db.updateTrack(track.id, updates)
+              db.updateTrack(track.id, selectedUpdates)
               console.log(chalk.green('✅ Metadata updated. All future changes will be accepted automatically.'))
               options.autoAccept = true
               break
